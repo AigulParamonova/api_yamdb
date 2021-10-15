@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Comment, Title, Category, Genre, User, Review
+from .models import Category, Comment, Genre, Review, Title, User
 
 
 EMPTY_VALUE = '-пусто-'
@@ -11,6 +11,7 @@ class CommentAdmin(admin.ModelAdmin):
     """Represents the model Comment in admin interface."""
     list_display = ('id', 'text', 'author', 'review')
     empty_value_display = EMPTY_VALUE
+
 
 @admin.register(Category)
 class CategoryAdmin(admin.ModelAdmin):
@@ -26,7 +27,6 @@ class TitleAdmin(admin.ModelAdmin):
 
     def get_genres(self, obj):
         return '\n'.join([str(p) for p in obj.genre.all()])
-
 
 
 @admin.register(Review)
@@ -45,6 +45,6 @@ class UserAdmin(admin.ModelAdmin):
 
 @admin.register(Genre)
 class GenreAdmin(admin.ModelAdmin):
-    """Represents the model Comment in admin interface."""
-    list_display = ('id', 'name')
+    """Represents the model Genre in admin interface."""
+    list_display = ('id', 'name', 'slug')
     empty_value_display = EMPTY_VALUE

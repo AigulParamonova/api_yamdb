@@ -4,17 +4,16 @@ import string
 
 from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.core.validators import MaxValueValidator, MinValueValidator
-from django.db import models
-from django.db.models.aggregates import Avg
 from django.core.exceptions import ValidationError
+from django.db import models
 
-
+ME_NOT_ALLOWED_MSG = 'username "me" is not allowed'
 now = dt.datetime.now()
 
 
 def validate_username(value):
     if value == 'me':
-        raise ValidationError("username 'me' is not allowed")
+        raise ValidationError(ME_NOT_ALLOWED_MSG)
     return value
 
 
@@ -31,6 +30,7 @@ def create_token():
 
 
 class CustomUserManager(BaseUserManager):
+
     def create_user(self, username, email, password=None, **kwargs):
         user = self.model(username=username, email=email, **kwargs)
         user.set_password(password)
@@ -73,13 +73,8 @@ class User(AbstractUser):
     )
     REQUIRED_FIELDS = ('email',)
 
-    @property
-    def is_moderator(self):
-        return self.role == 'moderator'
-
-    @property
-    def is_admin(self):
-        return self.role == 'admin' or self.is_staff
+    class Meta:
+        ordering = ('username',)
 
     objects = CustomUserManager()
 
@@ -169,7 +164,7 @@ class Review(models.Model):
         verbose_name_plural = 'Отзывы'
         constraints = (
             models.UniqueConstraint(
-                fields=['author', 'title'],
+                fields=('author', 'title'),
                 name='unique_review'
             ),
         )
