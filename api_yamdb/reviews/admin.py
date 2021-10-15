@@ -1,6 +1,7 @@
 from django.contrib import admin
 
-from .models import Category, Comment, Genre, Review, Title, User
+from .models import Comment, Title, Category, Genre, User, Review
+
 
 EMPTY_VALUE = '-пусто-'
 

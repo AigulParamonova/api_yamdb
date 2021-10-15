@@ -1,9 +1,8 @@
 import csv
 
-from django.apps import apps
 from django.core.management.base import BaseCommand
-
-from reviews.models import Category, Comment, Genre, Review, Title, User
+from django.apps import apps
+from reviews.models import Category, Genre, User, Title, Review, Comment
 
 
 def parse_simple(model_name, path):
