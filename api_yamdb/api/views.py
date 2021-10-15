@@ -1,19 +1,21 @@
 from django.core.mail import send_mail
-from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import filters, mixins, permissions, status, viewsets
-from rest_framework.decorators import action, api_view
-# from rest_framework.pagination import PageNumberPagination
+from django.shortcuts import get_object_or_404
+from rest_framework import viewsets, filters, mixins, status, permissions
+from rest_framework.decorators import api_view
+from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import AccessToken
-from reviews.models import Category, Genre, Review, Title, User
+from rest_framework.decorators import action
 
-from .permissions import (IsAdmin, IsAdminOrReadOnly,
+from reviews.models import Category, Comment, Genre, Review, Title, User
+from .serializers import (SignupSerializer, GetTokenSerializer, UserSerializer,
+                          CategorySerializer, TitleSerializerToRead,
+                          GenreSerializer, TitleSerializer,
+                          ReviewSerializer, CommentSerializer)
+from .permissions import (IsAdminOrReadOnly, IsAdmin,
                           IsAuthorModeratorAdminOrReadOnly)
-from .serializers import (CategorySerializer, CommentSerializer,
-                          GenreSerializer, GetTokenSerializer,
-                          ReviewSerializer, SignupSerializer, TitleSerializer,
-                          UserSerializer)
+
 
 MAIL_SUBJECT = 'Регистрация на Yamdb.ru'
 MESSAGE = 'Ваш код подтверждения: {confirmation_code}'
@@ -30,10 +32,7 @@ def signup(request):
         username_exists = User.objects.filter(username=username).exists()
         email_exists = User.objects.filter(email=email).exists()
         if username_exists or email_exists:
-            user_exists = User.objects.filter(
-                username=username,
-                email=email
-            ).exists()
+            user_exists = User.objects.filter(username=username, email=email).exists()
             if user_exists:
                 user = User.objects.get(username=username, email=email)
             else:
