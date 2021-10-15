@@ -26,8 +26,8 @@ class IsAuthorModeratorAdminOrReadOnly(permissions.BasePermission):
                 or request.user.is_authenticated)
 
     def has_object_permission(self, request, view, obj):
-        moderator = (request.user.is_authenticated and
-                     request.user.role in self.ROLE)
+        moderator = (request.user.is_authenticated
+                     and request.user.role in self.ROLE)
         return (request.method in permissions.SAFE_METHODS
                 or moderator or request.user.is_staff
                 or obj.author == request.user)
