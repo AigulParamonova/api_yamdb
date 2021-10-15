@@ -1,5 +1,5 @@
-from rest_framework import serializers
 from django.db.models.aggregates import Avg
+from rest_framework import serializers
 from reviews.models import Category, Comment, Genre, Review, Title, User
 
 
