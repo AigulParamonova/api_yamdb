@@ -1,21 +1,61 @@
 import datetime as dt
+import secrets
+import string
 
-from django.contrib.auth.models import AbstractUser
+from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.db.models.aggregates import Avg
+from django.core.exceptions import ValidationError
+
 
 now = dt.datetime.now()
 
 
-CHOICES = (
+def validate_username(value):
+    if value == 'me':
+        raise ValidationError("username 'me' is not allowed")
+    return value
+
+
+ROLE_CHOICES = (
     ('admin', 'admin'),
     ('moderator', 'moderator'),
     ('user', 'user'),
 )
 
 
+def create_token():
+    alphabet = string.ascii_letters.upper() + string.digits
+    return ''.join(secrets.choice(alphabet) for i in range(20))
+
+
+class CustomUserManager(BaseUserManager):
+    def create_user(self, username, email, password=None, **kwargs):
+        user = self.model(username=username, email=email, **kwargs)
+        user.set_password(password)
+        user.save()
+        return user
+
+    def create_superuser(self, username, email, password, **kwargs):
+        user = self.model(
+            username=username,
+            email=email,
+            is_staff=True,
+            is_superuser=True,
+            **kwargs
+        )
+        user.set_password(password)
+        user.save()
+        return user
+
+
 class User(AbstractUser):
+    username = models.CharField(
+        unique=True,
+        max_length=150,
+        validators=[validate_username, ])
+    email = models.EmailField(unique=True)
     bio = models.TextField(
         'Биография',
         blank=True,
@@ -23,13 +63,30 @@ class User(AbstractUser):
     role = models.CharField(
         'Пользовательская роль',
         max_length=10,
-        choices=CHOICES,
+        choices=ROLE_CHOICES,
+        default='user'
     )
+    confirmation_code = models.CharField(
+        'Код подтверждения',
+        max_length=20,
+        default=create_token
+    )
+    REQUIRED_FIELDS = ('email',)
+
+    @property
+    def is_moderator(self):
+        return self.role == 'moderator'
+
+    @property
+    def is_admin(self):
+        return self.role == 'admin' or self.is_staff
+
+    objects = CustomUserManager()
 
 
 class Category(models.Model):
     name = models.CharField('Название категории', max_length=256)
-    slug = models.SlugField('Адрес', unique=True, max_length=50)
+    slug = models.SlugField('Слаг', unique=True)
 
     def __str__(self):
         return self.name
@@ -42,7 +99,7 @@ class Category(models.Model):
 
 class Genre(models.Model):
     name = models.CharField('Название жанра', max_length=256)
-    slug = models.SlugField('Адрес', unique=True, max_length=50)
+    slug = models.SlugField('Слаг', unique=True)
 
     def __str__(self):
         return self.name
@@ -63,11 +120,7 @@ class Title(models.Model):
         ]
     )
     description = models.TextField('Описание', blank=True, null=True)
-    genre = models.ManyToManyField(
-        Genre,
-        'Жанр',
-        through='GenreTitle'
-    )
+    genre = models.ManyToManyField(Genre, 'Жанр', blank=True)
     category = models.ForeignKey(
         Category,
         on_delete=models.SET_NULL,
@@ -75,40 +128,14 @@ class Title(models.Model):
         blank=True,
         null=True
     )
-    rating = models.IntegerField(
-        verbose_name='Рейтинг',
-        null=True,
-        default=None
-    )
 
     def __str__(self):
         return self.name
-
-    def rating_avg(self):
-        return Review.objects.filter(title=self).aggregate(Avg('rating'))
 
     class Meta:
         ordering = ('name',)
         verbose_name = 'Произведение'
         verbose_name_plural = 'Произведения'
-
-
-class GenreTitle(models.Model):
-    title = models.ForeignKey(
-        Title,
-        on_delete=models.CASCADE
-    )
-    genre = models.ForeignKey(
-        Genre,
-        on_delete=models.CASCADE
-    )
-
-    def __str__(self):
-        return f'{self.title}, жанр - {self.genre}'
-
-    class Meta:
-        verbose_name = 'Произведение и жанр'
-        verbose_name_plural = 'Произведения и жанры'
 
 
 class Review(models.Model):
@@ -125,12 +152,11 @@ class Review(models.Model):
     text = models.TextField('Текст')
     pub_date = models.DateTimeField(
         'Дата публикации',
-        auto_now_add=True,
-        db_index=True
+        auto_now_add=True
     )
     score = models.PositiveSmallIntegerField(
         'Рейтинг',
-        default=1,
+        default=5,
         validators=[
             MinValueValidator(1),
             MaxValueValidator(10)
@@ -148,6 +174,9 @@ class Review(models.Model):
             ),
         )
 
+    def __str__(self):
+        return f'{self.author}: {self.text[:20]}'
+
 
 class Comment(models.Model):
     author = models.ForeignKey(
@@ -163,11 +192,13 @@ class Comment(models.Model):
     )
     pub_date = models.DateTimeField(
         'Дата публикации',
-        auto_now_add=True,
-        db_index=True
+        auto_now_add=True
     )
 
     class Meta:
         ordering = ('-pub_date',)
         verbose_name = 'Комментарий'
         verbose_name_plural = 'Комментарии'
+
+    def __str__(self):
+        return f'{self.author}: {self.text[:20]}'
