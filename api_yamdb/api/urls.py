@@ -4,7 +4,6 @@ from rest_framework.routers import DefaultRouter
 from .views import (get_jwt_token, signup, CategoryViewSet, CommentViewSet,
                     GenreViewSet, ReviewViewSet, TitleViewSet, UserViewSet)
 
-
 V1 = 'v1/'
 
 router_v1 = DefaultRouter()
