@@ -3,7 +3,7 @@ import csv
 from django.apps import apps
 from django.core.management.base import BaseCommand
 
-from reviews.models import Category, Comment, Genre, User, Title, Review
+from reviews.models import Category, Genre, User, Title, Review
 
 
 def parse_simple(model_name, path):
@@ -24,7 +24,7 @@ def parse_title(model_name, path):
     _model = apps.get_model('reviews', model_name)
     with open(path, 'r') as csv_file:
         rows = csv.reader(csv_file, delimiter=',')
-        header = next(rows)
+        header = next(rows)  # noqa 
         _model.objects.all().delete()
 
         for row in rows:
@@ -43,7 +43,7 @@ def parse_review(model_name, path):
     _model = apps.get_model('reviews', model_name)
     with open(path, 'r') as csv_file:
         rows = csv.reader(csv_file, delimiter=',')
-        header = next(rows)
+        header = next(rows)  # noqa
         _model.objects.all().delete()
 
         for row in rows:
@@ -65,7 +65,7 @@ def parse_comment(model_name, path):
     _model = apps.get_model('reviews', model_name)
     with open(path, 'r') as csv_file:
         rows = csv.reader(csv_file, delimiter=',')
-        header = next(rows)
+        header = next(rows)  # noqa
         _model.objects.all().delete()
 
         for row in rows:
@@ -85,7 +85,7 @@ def parse_genre_title(model_name, path):
     print(f'parse {path}')
     with open(path, 'r') as csv_file:
         rows = csv.reader(csv_file, delimiter=',')
-        header = next(rows)
+        header = next(rows)  # noqa
 
         for row in rows:
             print(row)
