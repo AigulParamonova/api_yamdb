@@ -6,8 +6,16 @@ from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.db.models.aggregates import Avg
+from django.core.exceptions import ValidationError
+
 
 now = dt.datetime.now()
+
+
+def validate_username(value):
+    if value == 'me':
+        raise ValidationError("username 'me' is not allowed")
+    return value
 
 
 ROLE_CHOICES = (
@@ -43,6 +51,10 @@ class CustomUserManager(BaseUserManager):
 
 
 class User(AbstractUser):
+    username = models.CharField(
+        unique=True,
+        max_length=150,
+        validators=[validate_username, ])
     email = models.EmailField(unique=True)
     bio = models.TextField(
         'Биография',
@@ -52,6 +64,7 @@ class User(AbstractUser):
         'Пользовательская роль',
         max_length=10,
         choices=ROLE_CHOICES,
+        default='user'
     )
     confirmation_code = models.CharField(
         'Код подтверждения',
@@ -60,9 +73,11 @@ class User(AbstractUser):
     )
     REQUIRED_FIELDS = ('email',)
 
+    @property
     def is_moderator(self):
         return self.role == 'moderator'
 
+    @property
     def is_admin(self):
         return self.role == 'admin' or self.is_staff
 
@@ -116,10 +131,6 @@ class Title(models.Model):
 
     def __str__(self):
         return self.name
-
-    @property
-    def rating_avg(self):
-        return self.reviews.aggregate(Avg('score'))
 
     class Meta:
         ordering = ('name',)

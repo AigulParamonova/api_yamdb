@@ -22,7 +22,7 @@ class CategoryAdmin(admin.ModelAdmin):
 @admin.register(Title)
 class TitleAdmin(admin.ModelAdmin):
     """Represents the model Title in admin interface."""
-    list_display = ('id', 'name', 'year', 'category', 'get_genres', 'rating_avg')
+    list_display = ('id', 'name', 'year', 'category', 'get_genres')
 
     def get_genres(self, obj):
         return '\n'.join([str(p) for p in obj.genre.all()])
