@@ -1,24 +1,25 @@
+import django_filters
+
 from django.core.mail import send_mail
 from django_filters.rest_framework import DjangoFilterBackend
 from django.shortcuts import get_object_or_404
 from rest_framework import viewsets, filters, mixins, status, permissions
-from rest_framework.decorators import api_view
-from rest_framework.pagination import PageNumberPagination
+from rest_framework.decorators import action, api_view
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import AccessToken
-from rest_framework.decorators import action
+from rest_framework.exceptions import ParseError
 
 from reviews.models import Category, Comment, Genre, Review, Title, User
-from .serializers import (SignupSerializer, GetTokenSerializer, UserSerializer,
-                          CategorySerializer, TitleSerializerToRead,
-                          GenreSerializer, TitleSerializer,
-                          ReviewSerializer, CommentSerializer)
-from .permissions import (IsAdminOrReadOnly, IsAdmin,
+from .serializers import (CategorySerializer, CommentSerializer,
+                          GenreSerializer, GetTokenSerializer, UserSerializer,
+                          ReviewSerializer, SignupSerializer, TitleSerializer,)
+from .permissions import (IsAdmin, IsAdminOrReadOnly,
                           IsAuthorModeratorAdminOrReadOnly)
 
 
 MAIL_SUBJECT = 'Регистрация на Yamdb.ru'
 MESSAGE = 'Ваш код подтверждения: {confirmation_code}'
+MAIL = '<admin@yamdb.ru>'
 
 
 @api_view(['POST'])
@@ -32,7 +33,10 @@ def signup(request):
         username_exists = User.objects.filter(username=username).exists()
         email_exists = User.objects.filter(email=email).exists()
         if username_exists or email_exists:
-            user_exists = User.objects.filter(username=username, email=email).exists()
+            user_exists = User.objects.filter(
+                username=username,
+                email=email
+            ).exists()
             if user_exists:
                 user = User.objects.get(username=username, email=email)
             else:
@@ -41,7 +45,7 @@ def signup(request):
             user = User.objects.create(username=username, email=email)
         confirmation_code = user.confirmation_code
         message = MESSAGE.format(confirmation_code=confirmation_code)
-        send_mail(MAIL_SUBJECT, message, '<admin@yamdb.ru>', [email])
+        send_mail(MAIL_SUBJECT, message, MAIL, [email])
         return Response(serializer.data, status=status.HTTP_200_OK)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -64,6 +68,9 @@ class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
     lookup_field = 'username'
+    filter_backends = (filters.SearchFilter, filters.OrderingFilter)
+    search_fields = ('=username',)
+    ordering_fields = ('username',)
 
     @action(methods=['patch', 'get'], detail=False,
             permission_classes=[permissions.IsAuthenticated],
@@ -105,7 +112,7 @@ class CategoryViewSet(CustomViewSet):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
     lookup_field = 'slug'
-    filter_backends = [filters.SearchFilter]
+    filter_backends = (filters.SearchFilter,)
     search_fields = ('=name', )
 
 
@@ -118,12 +125,31 @@ class GenreViewSet(CustomViewSet):
     search_fields = ('=name', )
 
 
+class TitleFilter(django_filters.FilterSet):
+    name = django_filters.CharFilter(
+        field_name='name',
+        lookup_expr='contains'
+    )
+    category = django_filters.CharFilter(
+        field_name='category__slug',
+        lookup_expr='exact'
+    )
+    genre = django_filters.CharFilter(
+        field_name='genre__slug',
+        lookup_expr='exact'
+    )
+
+    class Meta:
+        model = Title
+        fields = ['name', 'category', 'genre', 'year']
+
+
 class TitleViewSet(viewsets.ModelViewSet):
     serializer_class = TitleSerializer
     permission_classes = [IsAdminOrReadOnly, ]
     queryset = Title.objects.all()
     filter_backends = (DjangoFilterBackend,)
-    filterset_fields = ('category', 'genre', 'name', 'year')
+    filterset_class = TitleFilter
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
@@ -137,8 +163,13 @@ class ReviewViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         title_id = self.kwargs.get('title_id')
-        title = get_object_or_404(Title, id=title_id)
+        title = get_object_or_404(Title, pk=title_id)
+        if title.reviews.filter(author=self.request.user).exists():
+            raise ParseError
         serializer.save(author=self.request.user, title=title)
+
+    def perform_update(self, serializer):
+        serializer.save()
 
 
 class CommentViewSet(viewsets.ModelViewSet):
