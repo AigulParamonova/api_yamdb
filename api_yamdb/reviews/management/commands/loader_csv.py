@@ -24,7 +24,7 @@ def parse_title(model_name, path):
     _model = apps.get_model('reviews', model_name)
     with open(path, 'r') as csv_file:
         rows = csv.reader(csv_file, delimiter=',')
-        header = next(rows)  # noqa 
+        next(rows)  
         _model.objects.all().delete()
 
         for row in rows:
@@ -43,7 +43,7 @@ def parse_review(model_name, path):
     _model = apps.get_model('reviews', model_name)
     with open(path, 'r') as csv_file:
         rows = csv.reader(csv_file, delimiter=',')
-        header = next(rows)  # noqa
+        next(rows)  
         _model.objects.all().delete()
 
         for row in rows:
@@ -65,7 +65,7 @@ def parse_comment(model_name, path):
     _model = apps.get_model('reviews', model_name)
     with open(path, 'r') as csv_file:
         rows = csv.reader(csv_file, delimiter=',')
-        header = next(rows)  # noqa
+        next(rows) 
         _model.objects.all().delete()
 
         for row in rows:
@@ -85,7 +85,7 @@ def parse_genre_title(model_name, path):
     print(f'parse {path}')
     with open(path, 'r') as csv_file:
         rows = csv.reader(csv_file, delimiter=',')
-        header = next(rows)  # noqa
+        next(rows) 
 
         for row in rows:
             print(row)
