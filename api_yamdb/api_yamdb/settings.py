@@ -1,15 +1,19 @@
 import os
+import json
 
 from datetime import timedelta
+from dotenv import load_dotenv
 
+
+load_dotenv()
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-SECRET_KEY = 'p&l%385148kslhtyn^##a1)ilz@4zqj=rq&agdol^##zgl9(vs'
+SECRET_KEY = os.environ['SECRET_KEY']
 
-DEBUG = True
+DEBUG = os.environ['DEBUG']
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = json.loads(os.environ['ALLOWED_HOSTS'])
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -18,10 +22,11 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'api',
-    'reviews',
     'rest_framework',
     'django_filters',
+    'api',
+    'reviews',
+    'users',
 ]
 
 MIDDLEWARE = [
@@ -95,7 +100,7 @@ SIMPLE_JWT = {
     'AUTH_HEADER_TYPES': ('Bearer',),
 }
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = 'ru-RU'
 
 TIME_ZONE = 'UTC'
 
@@ -109,7 +114,8 @@ STATIC_URL = '/static/'
 
 STATICFILES_DIRS = (os.path.join(BASE_DIR, 'static/'),)
 
-AUTH_USER_MODEL = 'reviews.User'
+AUTH_USER_MODEL = 'users.User'
 
 EMAIL_BACKEND = 'django.core.mail.backends.filebased.EmailBackend'
 EMAIL_FILE_PATH = os.path.join(BASE_DIR, 'sent_emails')
+MAIL = '<admin@yamdb.ru>'

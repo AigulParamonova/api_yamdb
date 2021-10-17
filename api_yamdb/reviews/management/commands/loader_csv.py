@@ -3,12 +3,25 @@ import csv
 from django.apps import apps
 from django.core.management.base import BaseCommand
 
-from reviews.models import Category, Genre, User, Title, Review
+from reviews.models import Category, Genre, Title, Review, User
 
 
 def parse_simple(model_name, path):
     print(f'parse {path}')
     _model = apps.get_model('reviews', model_name)
+    with open(path, 'r') as csv_file:
+        rows = csv.reader(csv_file, delimiter=',')
+        header = next(rows)
+        _model.objects.all().delete()
+
+        for row in rows:
+            _object_dict = {key: value for key, value in zip(header, row)}
+            _model.objects.get_or_create(**_object_dict)
+
+
+def parse_users(model_name, path):
+    print(f'parse {path}')
+    _model = apps.get_model('users', model_name)
     with open(path, 'r') as csv_file:
         rows = csv.reader(csv_file, delimiter=',')
         header = next(rows)
@@ -97,7 +110,7 @@ def parse_genre_title(model_name, path):
 import_list = [
     ('Genre', 'static/data/genre.csv', parse_simple),
     ('Category', 'static/data/category.csv', parse_simple),
-    ('User', 'static/data/users.csv', parse_simple),
+    ('User', 'static/data/users.csv', parse_users),
     ('Title', 'static/data/titles.csv', parse_title),
     ('Review', 'static/data/review.csv', parse_review),
     ('Comment', 'static/data/comments.csv', parse_comment),
@@ -106,6 +119,10 @@ import_list = [
 
 
 class Command(BaseCommand):
+    help = ('Добавляет данные из csv файлов директории static/data/ '
+            'в базу данных sqlite3. Перед добавлением удаляет все записи '
+            'используемых моделей!')
+
     def handle(self, *args, **kwargs):
         for import_item in import_list:
             import_func = import_item[2]

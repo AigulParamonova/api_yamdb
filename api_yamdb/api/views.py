@@ -1,9 +1,10 @@
 import django_filters
 
+from django.conf import settings
 from django.core.mail import send_mail
 from django_filters.rest_framework import DjangoFilterBackend
 from django.shortcuts import get_object_or_404
-from rest_framework import viewsets, filters, mixins, status, permissions
+from rest_framework import viewsets, filters, status, permissions
 from rest_framework.decorators import action, api_view
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import AccessToken
@@ -15,11 +16,12 @@ from .serializers import (CategorySerializer, CommentSerializer,
                           ReviewSerializer, SignupSerializer, TitleSerializer,)
 from .permissions import (IsAdmin, IsAdminOrReadOnly,
                           IsAuthorModeratorAdminOrReadOnly)
+from .mixins import CustomViewSet
 
 
 MAIL_SUBJECT = 'Регистрация на Yamdb.ru'
 MESSAGE = 'Ваш код подтверждения: {confirmation_code}'
-MAIL = '<admin@yamdb.ru>'
+MAIL = settings.MAIL
 
 
 @api_view(['POST'])
@@ -98,13 +100,6 @@ class UserViewSet(viewsets.ModelViewSet):
             serializer.is_valid()
             serializer.save()
         return Response(serializer.data)
-
-
-class CustomViewSet(mixins.ListModelMixin,
-                    mixins.CreateModelMixin,
-                    mixins.DestroyModelMixin,
-                    viewsets.GenericViewSet):
-    pass
 
 
 class CategoryViewSet(CustomViewSet):

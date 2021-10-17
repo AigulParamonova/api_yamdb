@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Category, Comment, Genre, Review, Title, User
+from .models import Category, Comment, Genre, Review, Title
 
 
 EMPTY_VALUE = '-пусто-'
@@ -33,13 +33,6 @@ class TitleAdmin(admin.ModelAdmin):
 class ReviewAdmin(admin.ModelAdmin):
     """Represents the model Review in admin interface."""
     list_display = ('id', 'text', 'score', 'author', 'title')
-    empty_value_display = EMPTY_VALUE
-
-
-@admin.register(User)
-class UserAdmin(admin.ModelAdmin):
-    """Represents the model User in admin interface."""
-    list_display = ('id', 'username', 'email', 'password')
     empty_value_display = EMPTY_VALUE
 
 
