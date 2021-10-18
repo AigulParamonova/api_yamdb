@@ -1,4 +1,3 @@
-import json
 import os
 
 from datetime import timedelta
@@ -13,7 +12,7 @@ SECRET_KEY = os.environ.get('SECRET_KEY', default=None)
 
 DEBUG = os.environ.get('DEBUG', default=False)
 
-ALLOWED_HOSTS = json.loads(os.environ.get('ALLOWED_HOSTS', default='["*"]'))
+ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', default=None).split(',')
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -92,7 +91,7 @@ REST_FRAMEWORK = {
     ],
     'DEFAULT_PAGINATION_CLASS':
         'rest_framework.pagination.PageNumberPagination',
-    'PAGE_SIZE': 12,
+    'PAGE_SIZE': 10,
 }
 
 SIMPLE_JWT = {
