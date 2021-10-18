@@ -1,19 +1,19 @@
 import os
-import json
 
 from datetime import timedelta
 from dotenv import load_dotenv
 
 
 load_dotenv()
+os.path.expanduser('~')
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 SECRET_KEY = os.environ.get('SECRET_KEY', default=None)
 
-DEBUG = os.environ.get('DEBUG', default=False)
+DEBUG = True
 
-ALLOWED_HOSTS = json.loads(os.environ.get('ALLOWED_HOSTS', default='["*"]'))
+ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', default=None).split(',')
 
 INSTALLED_APPS = [
     'django.contrib.admin',
