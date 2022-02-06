@@ -17,37 +17,50 @@
 
 # Как запустить проект:
 Клонировать репозиторий и перейти в него в командной строке:
+
 git clone https://github.com/agamova/api_yamdb.git
+
 cd api_yamdb
 
 
 Cоздать виртуальное окружение:
+
 `python -m venv env`
+
 и активировать:
+
 Windows:`source venv/Scripts/activate`
+
 Linux/Mac: `sorce venv/bin/activate`
 
 
 Установить зависимости из файла requirements.txt:
+
 `python -m pip install --upgrade pip`
+
 `pip install -r requirements.txt`
 
 
 Выполнить миграции:
+
 `python3 manage.py migrate`
 
 
 Заполнить базу данными из csv файлов:
+
 `python3 manage.py loader_csv`
 
 
 Создать суперюзера:
+
 `python manage.py createsuperuser`
 
 
 Запустить проект:
+
 `python3 manage.py runserver`
 
 
 Документация API YaMDb по адресу:
+
 `http://127.0.0.1:8000/redoc/`
